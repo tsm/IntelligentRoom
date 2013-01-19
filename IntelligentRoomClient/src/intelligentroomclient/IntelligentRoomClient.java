@@ -22,11 +22,13 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     int photo=0;
     double temp=0.0;
     
-    int time=0; //in sec
+    boolean isRunning=false;
+    
+    SimulationTime time; //in sec
     int lamp1=0;
     
-    int sunrise=21600;
-    int sunset=64800;
+    SimulationTime sunrise=new SimulationTime(6,0);
+    SimulationTime sunset=new SimulationTime(16,0);
     
     public int getPhoto() {
         return photo;
@@ -67,25 +69,18 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         lamp1_slider.setValue(this.lamp1);
         
         try {
-            int half_sun_time=(sunset-sunrise)/2;
-            serialPort.writeString((255-(Math.abs(time%86400 - half_sun_time*2)/(half_sun_time/255)))+","+lamp1+"\n"); // MAGIC LINE xD
+            int half_sun_time=(sunset.getTime()-sunrise.getTime())/2;
+            serialPort.writeString((255-(Math.abs(time.getTime()%SimulationTime.DAY_SECS - sunrise.getTime() - half_sun_time)/(half_sun_time/255)))+","+lamp1+"\n"); // MAGIC LINE xD
         } catch (SerialPortException ex) {
             Logger.getLogger(IntelligentRoomClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
-    public int getTime() {
-        return time;
-    }
-
-    public void setTime(int time) {
-        this.time = time;
-        min_lbl.setText(String.format("%02d",time/60%60));
-        hour_lbl.setText(String.format("%02d",time/60/60%24));
-        day_lbl.setText(""+(time/86400));
-        
-    }
     
+    public void showTime(){
+        min_lbl.setText(String.format("%02d",time.getMin()));
+        hour_lbl.setText(String.format("%2d",time.getHour()));
+        day_lbl.setText(""+(time.getDay()));
+    }
  
     class SerialPortReader implements SerialPortEventListener {
         String catlines="";
@@ -104,12 +99,30 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         while(newline>-1){
                             //System.out.print(catlines.substring(0, newline));
                             String [] measures = catlines.substring(0, newline-1).split(";");
-                            setPhoto(Integer.valueOf(measures[0]));
-                            setTemp(Double.valueOf(measures[1]));
-                            setTime(time+15*60);
-                            System.out.println("Photo = "+photo+", temp= "+temp);
-                            //serialPort.writeString(lamp1+"");
-                           // serialPort.writeByte((byte)10); //newline
+                            if((!measures[0].equals(""))&&(!measures[1].equals(""))){ //zapobiega wczytaniu niepełnych danych
+                                setPhoto(Integer.valueOf(measures[0]));
+                                setTemp(Double.valueOf(measures[1]));
+                                
+                                if(isRunning){                                
+                                    
+                                    //RAPORT:
+                                    if(time.getHour()==0&&time.getMin()==0){
+                                        System.out.println("==== Day "+time.getDay()+" ====");
+                                    }
+                                    if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
+                                        System.out.println("==== Sun rised ====");
+                                    }
+                                    if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
+                                        System.out.println("==== Sunset ====");
+                                    }
+                                    System.out.println(String.format("%2d",time.getHour())+":"+
+                                            String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
+                                
+                                    
+                                    time.addSecs(15*60); // TIME incrementation
+                                    showTime();
+                                }
+                            }
                             catlines=catlines.substring(newline+1);
                             newline=catlines.indexOf("\n");
                         }
@@ -140,6 +153,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
      * Creates new form IntelligentRoomClient
      */
     public IntelligentRoomClient() {
+        time=new SimulationTime(0);
         initComponents();
         serialPort = new SerialPort("COM3");
         try {
@@ -174,7 +188,6 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         catch (SerialPortException ex) {
             System.out.println(ex);
         }
-        setTime(0);
     }
 
     /**
@@ -199,8 +212,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         min_lbl = new javax.swing.JLabel();
         day_lbl = new javax.swing.JLabel();
         day_lbl_const = new javax.swing.JLabel();
+        start_pause_btn = new javax.swing.JButton();
+        reset_btn = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("IntelligentRoom by Smilasek and Tsm");
+        setIconImage(java.awt.Toolkit.getDefaultToolkit().getImage(IntelligentRoomClient.class.getResource("../img/icon.png")));
 
         lamp1_form.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -267,70 +284,93 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         day_lbl_const.setForeground(new java.awt.Color(0, 0, 102));
         day_lbl_const.setText("Day");
 
+        start_pause_btn.setText("Start");
+        start_pause_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                start_pause_btnActionPerformed(evt);
+            }
+        });
+
+        reset_btn.setText("Reset");
+        reset_btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                reset_btnMouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(22, 22, 22)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(temp_lbl2)
+                        .addComponent(start_pause_btn)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(temp_lbl))
+                        .addComponent(reset_btn)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(day_lbl_const, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(day_lbl, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(54, 54, 54)
+                        .addComponent(hour_lbl)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(min_lbl)
+                        .addGap(24, 24, 24))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(3, 3, 3)
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(SetLamp1)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addComponent(lamp1_slider, javax.swing.GroupLayout.PREFERRED_SIZE, 359, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addGap(20, 20, 20)
-                .addComponent(photo_lbl1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(photo_lbl)
-                .addGap(18, 18, 18)
-                .addComponent(day_lbl_const, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(day_lbl, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(hour_lbl)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(min_lbl)
-                .addGap(24, 24, 24))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(lamp1_slider, javax.swing.GroupLayout.PREFERRED_SIZE, 262, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(SetLamp1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(2, 2, 2)
+                                .addComponent(temp_lbl2)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(temp_lbl))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(photo_lbl1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(photo_lbl))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(174, 174, 174)
+                                .addComponent(jLabel1)))
+                        .addContainerGap(12, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(22, 22, 22)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(photo_lbl1)
-                    .addComponent(photo_lbl)
                     .addComponent(hour_lbl)
                     .addComponent(jLabel3)
                     .addComponent(min_lbl)
                     .addComponent(day_lbl)
-                    .addComponent(day_lbl_const))
+                    .addComponent(day_lbl_const)
+                    .addComponent(start_pause_btn)
+                    .addComponent(reset_btn))
+                .addGap(66, 66, 66)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lamp1_slider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(SetLamp1)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 53, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(photo_lbl1)
+                    .addComponent(photo_lbl))
                 .addGap(16, 16, 16)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(temp_lbl2)
                     .addComponent(temp_lbl))
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(SetLamp1)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lamp1_slider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(138, Short.MAX_VALUE))
+                .addGap(26, 26, 26))
         );
 
         pack();
@@ -357,6 +397,21 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         setLamp1(lamp1_slider.getValue());
         
     }//GEN-LAST:event_lamp1_sliderStateChanged
+
+    private void start_pause_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_start_pause_btnActionPerformed
+        if(isRunning){
+            isRunning=false;
+            start_pause_btn.setText("Resume");
+        } else {
+            isRunning=true;
+            start_pause_btn.setText("Pause");
+        }
+    }//GEN-LAST:event_start_pause_btnActionPerformed
+
+    private void reset_btnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_reset_btnMouseClicked
+        time.setTime(0);
+        showTime();
+    }//GEN-LAST:event_reset_btnMouseClicked
 
     /**
      * @param args the command line arguments
@@ -407,6 +462,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JLabel min_lbl;
     private javax.swing.JLabel photo_lbl;
     private javax.swing.JLabel photo_lbl1;
+    private javax.swing.JButton reset_btn;
+    private javax.swing.JButton start_pause_btn;
     private javax.swing.JLabel temp_lbl;
     private javax.swing.JLabel temp_lbl2;
     // End of variables declaration//GEN-END:variables

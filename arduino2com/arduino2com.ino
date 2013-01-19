@@ -1,5 +1,5 @@
-int photoPin = 0; // photoresistor pin
-int tempPin = 1;  // temperature pin
+int photoPin = 0; // photoresistor analog pin
+int tempPin = 5;  // temperature analog pin
 int lamp0Pin= 3; //lamp 1 PMW pin
 int lamp1Pin= 5; //lamp 1 PMW pin
 
