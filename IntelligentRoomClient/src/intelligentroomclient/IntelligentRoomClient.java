@@ -21,21 +21,38 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     SerialPort serialPort;
     
     int photo=0;
+    int optimalIllumination=350;
     double temp=0.0;
     
     boolean isRunning=false;
     
     SimulationTime time; //in sec
     
+    int lamp0=0;
     int lamp1=0;
     
     SimulationTime sunrise=new SimulationTime(6,0);
     SimulationTime sunset=new SimulationTime(16,0);
     
+    URLConnectionReader ucr;
+    
     public void stepSimulation(int photo, double temp){
         setPhoto(photo);
         setTemp(temp);
-
+        
+        //setting the SUN
+        int half_sun_time=(sunset.getTime()-sunrise.getTime())/2;
+        setLamp0(255-(Math.abs(time.getTime()%SimulationTime.DAY_SECS - sunrise.getTime() - half_sun_time)/(half_sun_time/255))); // MAGIC LINE xD
+        
+        
+        
+        //Write to arduino
+        try {
+            serialPort.writeString(getLamp0()+","+getLamp1()+"\n");
+        } catch (SerialPortException ex) {
+            Logger.getLogger(IntelligentRoomClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
         if(isRunning && console!=null){                                
 
             //RAPORT:
@@ -49,7 +66,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 console.writeMsg("==== Sunset ====");
             }
             console.writeMsg(String.format("%2d",time.getHour())+":"+
-                    String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
+                    String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", sun= "+getLamp0()+", lamp= "+getLamp1()+", temp= "+getTemp()+" °C"); 
 
 
             time.addSecs(15*60); // TIME incrementation
@@ -94,14 +111,32 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             this.lamp1=255;
         }
         lamp1_slider.setValue(this.lamp1);
-        
-        try {
-            int half_sun_time=(sunset.getTime()-sunrise.getTime())/2;
-            serialPort.writeString((255-(Math.abs(time.getTime()%SimulationTime.DAY_SECS - sunrise.getTime() - half_sun_time)/(half_sun_time/255)))+","+lamp1+"\n"); // MAGIC LINE xD
-        } catch (SerialPortException ex) {
-            Logger.getLogger(IntelligentRoomClient.class.getName()).log(Level.SEVERE, null, ex);
+    }
+
+    public int getLamp0() {
+        return lamp0;
+    }
+
+    public void setLamp0(int lamp0) {
+        this.lamp0 = lamp0;        
+        if(this.lamp0<0){
+            this.lamp0=0;
+        }
+        if(this.lamp0>255) {
+            this.lamp0=255;
         }
     }
+
+    public int getOptimalIllumination() {
+        return optimalIllumination;
+    }
+
+    public void setOptimalIllumination(int optimalIllumination) {
+        this.optimalIllumination = optimalIllumination;
+        optimal_illumination_lbl.setText(""+optimalIllumination);
+    }
+    
+    
     
     public void showTime(){
         min_lbl.setText(String.format("%02d",time.getMin()));
@@ -179,8 +214,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         photo_lbl = new javax.swing.JLabel();
         temp_lbl2 = new javax.swing.JLabel();
         optimal_illumination_btn = new javax.swing.JButton();
+        optimal_illumination_lbl = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
-        SetLamp1 = new javax.swing.JButton();
+        set_lamp1_btn = new javax.swing.JButton();
         lamp1_form = new javax.swing.JTextField();
         lamp1_slider = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
@@ -228,6 +264,14 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         optimal_illumination_btn.setText("Set optimal illumination");
         optimal_illumination_btn.setEnabled(false);
+        optimal_illumination_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                optimal_illumination_btnActionPerformed(evt);
+            }
+        });
+
+        optimal_illumination_lbl.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        optimal_illumination_lbl.setText(""+getOptimalIllumination());
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -246,7 +290,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(photo_lbl)
                         .addGap(66, 66, 66)
-                        .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(optimal_illumination_lbl)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -256,7 +302,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(photo_lbl1)
                     .addComponent(photo_lbl)
-                    .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+                    .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                    .addComponent(optimal_illumination_lbl, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(10, 10, 10)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(temp_lbl2)
@@ -266,20 +313,21 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Manual set"));
 
-        SetLamp1.setText("SetLamp");
-        SetLamp1.addMouseListener(new java.awt.event.MouseAdapter() {
+        set_lamp1_btn.setText("SetLamp");
+        set_lamp1_btn.setActionCommand("Set Lamp");
+        set_lamp1_btn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
-                SetLamp1MousePressed(evt);
+                set_lamp1_btnMousePressed(evt);
             }
         });
-        SetLamp1.addActionListener(new java.awt.event.ActionListener() {
+        set_lamp1_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                SetLamp1ActionPerformed(evt);
+                set_lamp1_btnActionPerformed(evt);
             }
         });
-        SetLamp1.addKeyListener(new java.awt.event.KeyAdapter() {
+        set_lamp1_btn.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
-                SetLamp1KeyPressed(evt);
+                set_lamp1_btnKeyPressed(evt);
             }
         });
 
@@ -311,7 +359,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(SetLamp1)
+                .addComponent(set_lamp1_btn)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -320,7 +368,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(lamp1_slider, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(SetLamp1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(set_lamp1_btn, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
@@ -427,6 +475,11 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         connect2server_btn.setText("Connect to server");
         connect2server_btn.setEnabled(false);
+        connect2server_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connect2server_btnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -518,22 +571,22 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void SetLamp1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SetLamp1ActionPerformed
+    private void set_lamp1_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_set_lamp1_btnActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_SetLamp1ActionPerformed
+    }//GEN-LAST:event_set_lamp1_btnActionPerformed
 
     private void lamp1_formActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lamp1_formActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_lamp1_formActionPerformed
 
-    private void SetLamp1KeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_SetLamp1KeyPressed
+    private void set_lamp1_btnKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_set_lamp1_btnKeyPressed
         
-    }//GEN-LAST:event_SetLamp1KeyPressed
+    }//GEN-LAST:event_set_lamp1_btnKeyPressed
 
-    private void SetLamp1MousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_SetLamp1MousePressed
+    private void set_lamp1_btnMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_set_lamp1_btnMousePressed
         setLamp1(Byte.valueOf(lamp1_form.getText()));
         
-    }//GEN-LAST:event_SetLamp1MousePressed
+    }//GEN-LAST:event_set_lamp1_btnMousePressed
 
     private void lamp1_sliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lamp1_sliderStateChanged
         setLamp1(lamp1_slider.getValue());
@@ -589,9 +642,28 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             status_lbl.setText("Error: Can't connect to port "+port);
         }
         connect_arduino_btn.setEnabled(false);
-        connect2server_btn.setEnabled(true);
-        start_pause_btn.setEnabled(true);
+        connect2server_btn.setEnabled(true);        
+        optimal_illumination_btn.setEnabled(true);
     }//GEN-LAST:event_connect_arduino_btnActionPerformed
+
+    private void optimal_illumination_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optimal_illumination_btnActionPerformed
+        setOptimalIllumination(getPhoto());
+    }//GEN-LAST:event_optimal_illumination_btnActionPerformed
+
+    private void connect2server_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect2server_btnActionPerformed
+        ucr= new URLConnectionReader();
+        String params="config?client="+client_form.getText()+"&a_from_h=8&a_from_m=29&a_to_h=10&a_to_m=40&def_value="+getOptimalIllumination();
+        String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
+        if(resp.startsWith("OK")){
+            status_lbl.setText("Connected to server");
+            connect2server_btn.setEnabled(false);
+            start_pause_btn.setEnabled(true);
+        }
+        else {            
+            status_lbl.setText(resp);    
+        }
+            
+    }//GEN-LAST:event_connect2server_btnActionPerformed
 
     /**
      * 
@@ -634,7 +706,6 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     }
     private Console console;
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton SetLamp1;
     private javax.swing.JTextField address_from;
     private javax.swing.JComboBox cb_COM;
     private javax.swing.JTextField client_form;
@@ -658,10 +729,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JSlider lamp1_slider;
     private javax.swing.JLabel min_lbl;
     private javax.swing.JButton optimal_illumination_btn;
+    private javax.swing.JLabel optimal_illumination_lbl;
     private javax.swing.JLabel photo_lbl;
     private javax.swing.JLabel photo_lbl1;
     private javax.swing.JTextField port_form;
     private javax.swing.JButton reset_btn;
+    private javax.swing.JButton set_lamp1_btn;
     private javax.swing.JButton start_pause_btn;
     private javax.swing.JLabel status_lbl;
     private javax.swing.JLabel temp_lbl;
