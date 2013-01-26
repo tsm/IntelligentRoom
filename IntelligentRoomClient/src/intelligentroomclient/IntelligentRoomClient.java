@@ -4,10 +4,9 @@
  */
 package intelligentroomclient;
 
+import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -333,9 +332,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(lamp1_slider, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(SetLamp1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(SetLamp1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lamp1_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
@@ -354,9 +352,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         });
 
         reset_btn.setText("Reset");
-        reset_btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                reset_btnMouseClicked(evt);
+        reset_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reset_btnActionPerformed(evt);
             }
         });
 
@@ -381,7 +379,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addComponent(start_pause_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(start_pause_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(reset_btn)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -394,7 +392,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(min_lbl)
-                .addContainerGap())
+                .addGap(51, 51, 51))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -429,13 +427,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         jLabel6.setText("Port:");
 
         port_form.setText("8181");
-        port_form.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                port_formActionPerformed(evt);
-            }
-        });
 
-<<<<<<< HEAD
         conect_arduino_btn.setText("Connect Arduino");
 
         connect2server_btn.setText("Connect to server");
@@ -494,19 +486,6 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         );
 
         jLabel7.setText("Status: OK");
-=======
-        reset_btn.setText("Reset");
-        reset_btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                reset_btnMouseClicked(evt);
-            }
-        });
-        reset_btn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                reset_btnActionPerformed(evt);
-            }
-        });
->>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -572,39 +551,24 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         } else {
             isRunning=true;
             start_pause_btn.setText("Pause");
-<<<<<<< HEAD
-            URLConnectionReader ucr= new URLConnectionReader();
-            String resp=ucr.sendGetRequest("http://localhost:8181/", "");
-            System.out.println(resp);
-=======
             if (console == null){
                 this.getWidth();
                 console = new Console(this.getWidth());
             }
             console.setVisible(true);
-            console.writeMsg("Rozpoczynam pomiary:");
->>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
         }
     }//GEN-LAST:event_start_pause_btnActionPerformed
 
-    private void reset_btnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_reset_btnMouseClicked
+    private void reset_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reset_btnActionPerformed
         time.setTime(0);
         showTime();
-    }//GEN-LAST:event_reset_btnMouseClicked
-
-<<<<<<< HEAD
-    private void port_formActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_port_formActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_port_formActionPerformed
-=======
-    private void reset_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reset_btnActionPerformed
         if (console!=null){
             console.clearConsole();
         }
     }//GEN-LAST:event_reset_btnActionPerformed
->>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
 
     /**
+     * 
      * @param args the command line arguments
      */
     public static void main(String args[]) {

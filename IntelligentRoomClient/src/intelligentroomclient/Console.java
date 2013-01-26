@@ -57,6 +57,7 @@ public class Console extends javax.swing.JFrame {
         saveToFileButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setIconImage(java.awt.Toolkit.getDefaultToolkit().getImage(IntelligentRoomClient.class.getResource("../img/icon.png")));
 
         textArea.setEditable(false);
         textArea.setColumns(20);
