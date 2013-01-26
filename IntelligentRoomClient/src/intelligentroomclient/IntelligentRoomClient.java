@@ -31,8 +31,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     int lamp0=0;
     int lamp1=0;
     
-    SimulationTime sunrise=new SimulationTime(6,0);
-    SimulationTime sunset=new SimulationTime(16,0);
+    SimulationTime sunrise=new SimulationTime(4,30);
+    SimulationTime sunset=new SimulationTime(18,0);
     
     URLConnectionReader ucr;
     
@@ -69,7 +69,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         
         //Write to arduino
         try {
-            serialPort.writeString(getLamp0()+","+getLamp1()+"\n");
+            if (!cb_COM.getSelectedItem().toString().equals("FAKE")){
+                serialPort.writeString(getLamp0()+","+getLamp1()+"\n");
+            }
         } catch (SerialPortException ex) {
             Logger.getLogger(IntelligentRoomClient.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -644,9 +646,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
     private void connect_arduino_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect_arduino_btnActionPerformed
         String port= cb_COM.getSelectedItem().toString();
-        if(!port.equals("FAKE")){
-            serialPort = new SerialPort(cb_COM.getSelectedItem().toString());
-            try {
+        try {
+            if(!port.equals("FAKE")){
+                serialPort = new SerialPort(cb_COM.getSelectedItem().toString());
                 //Open port
                 serialPort.openPort();
                 //We expose the settings. You can also use this line - serialPort.setParams(9600, 8, 1, 0);
@@ -659,11 +661,13 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 serialPort.setEventsMask(mask);//Set mask
                 serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
                 status_lbl.setText("Connected to "+port);
+            }else{
+                new Thread(new FakeArduino(this)).start();
+                status_lbl.setText("Connected to "+port);
             }
-            catch (SerialPortException ex) {
-                status_lbl.setText("Error: Can't connect to port "+port);
-                return;
-            }
+        }
+        catch (SerialPortException ex) {
+            status_lbl.setText("Error: Can't connect to port "+port);
         }
         connect_arduino_btn.setEnabled(false);
         connect2server_btn.setEnabled(true);        

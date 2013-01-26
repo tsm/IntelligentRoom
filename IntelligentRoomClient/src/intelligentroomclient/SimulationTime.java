@@ -55,4 +55,8 @@ public class SimulationTime {
     public void setDay(int d){
         time = time-getDay()*DAY_SECS+d*DAY_SECS;
     }
+    
+    public boolean timeEquals(SimulationTime st){        
+        return (st.getTime()==this.getTime());
+    }
 }
