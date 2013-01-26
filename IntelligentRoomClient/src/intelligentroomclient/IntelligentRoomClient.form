@@ -42,7 +42,7 @@
                   <Component id="jPanel1" alignment="1" max="32767" attributes="0"/>
                   <Component id="jPanel4" alignment="0" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                      <Component id="status_lbl" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -62,7 +62,7 @@
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
-              <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+              <Component id="status_lbl" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -434,7 +434,7 @@
         <Component class="javax.swing.JComboBox" name="cb_COM">
           <Properties>
             <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-              <StringArray count="12">
+              <StringArray count="13">
                 <StringItem index="0" value="COM1"/>
                 <StringItem index="1" value="COM2"/>
                 <StringItem index="2" value="COM3"/>
@@ -447,9 +447,9 @@
                 <StringItem index="9" value="COM10"/>
                 <StringItem index="10" value="COM11"/>
                 <StringItem index="11" value="COM12"/>
+                <StringItem index="12" value="FAKE"/>
               </StringArray>
             </Property>
-            <Property name="selectedIndex" type="int" value="2"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel2">
@@ -491,6 +491,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Connect Arduino"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="conect_arduino_btnActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="connect2server_btn">
           <Properties>
@@ -499,7 +502,7 @@
         </Component>
       </SubComponents>
     </Container>
-    <Component class="javax.swing.JLabel" name="jLabel7">
+    <Component class="javax.swing.JLabel" name="status_lbl">
       <Properties>
         <Property name="text" type="java.lang.String" value="Status: OK"/>
       </Properties>

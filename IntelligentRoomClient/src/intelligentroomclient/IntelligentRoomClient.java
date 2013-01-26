@@ -38,12 +38,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     public void setPhoto(int photo) {
         this.photo = photo;
         photo_lbl.setText(String.valueOf(photo));
-        if (photo < 300){
+       /* if (photo < 300){
             setLamp1(getLamp1()+5);
         }
         if (photo > 350){
             setLamp1(getLamp1()-5);
-        }
+        }*/
     }
 
     public double getTemp() {
@@ -156,24 +156,6 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     public IntelligentRoomClient() {
         time=new SimulationTime(0);
         initComponents();
-        serialPort = new SerialPort("COM3");
-        try {
-            //Open port
-            serialPort.openPort();
-            //We expose the settings. You can also use this line - serialPort.setParams(9600, 8, 1, 0);
-            serialPort.setParams(SerialPort.BAUDRATE_57600, 
-                                 SerialPort.DATABITS_8,
-                                 SerialPort.STOPBITS_1,
-                                 SerialPort.PARITY_NONE);
-            
-            int mask = SerialPort.MASK_RXCHAR + SerialPort.MASK_CTS + SerialPort.MASK_DSR;//Prepare mask
-            serialPort.setEventsMask(mask);//Set mask
-            serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
-            
-        }
-        catch (SerialPortException ex) {
-            System.out.println(ex);
-        }
     }
 
     /**
@@ -216,7 +198,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         port_form = new javax.swing.JTextField();
         conect_arduino_btn = new javax.swing.JButton();
         connect2server_btn = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
+        status_lbl = new javax.swing.JLabel();
 
         jTextField2.setText("jTextField2");
 
@@ -411,8 +393,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Connection"));
 
-        cb_COM.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12" }));
-        cb_COM.setSelectedIndex(2);
+        cb_COM.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "FAKE" }));
 
         jLabel2.setText("Arduino COM port:");
 
@@ -429,6 +410,11 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         port_form.setText("8181");
 
         conect_arduino_btn.setText("Connect Arduino");
+        conect_arduino_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                conect_arduino_btnActionPerformed(evt);
+            }
+        });
 
         connect2server_btn.setText("Connect to server");
 
@@ -485,7 +471,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jLabel7.setText("Status: OK");
+        status_lbl.setText("Status: OK");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -499,7 +485,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                     .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel7)
+                        .addComponent(status_lbl)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -515,7 +501,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel7)
+                .addComponent(status_lbl)
                 .addContainerGap())
         );
 
@@ -566,6 +552,30 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             console.clearConsole();
         }
     }//GEN-LAST:event_reset_btnActionPerformed
+
+    private void conect_arduino_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conect_arduino_btnActionPerformed
+        String port= cb_COM.getSelectedItem().toString();
+        if(!port.equals("FAKE")){
+            serialPort = new SerialPort(cb_COM.getSelectedItem().toString());
+            try {
+                //Open port
+                serialPort.openPort();
+                //We expose the settings. You can also use this line - serialPort.setParams(9600, 8, 1, 0);
+                serialPort.setParams(SerialPort.BAUDRATE_57600, 
+                                     SerialPort.DATABITS_8,
+                                     SerialPort.STOPBITS_1,
+                                     SerialPort.PARITY_NONE);
+
+                int mask = SerialPort.MASK_RXCHAR + SerialPort.MASK_CTS + SerialPort.MASK_DSR;//Prepare mask
+                serialPort.setEventsMask(mask);//Set mask
+                serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
+                status_lbl.setText("Connected to "+port);
+            }
+            catch (SerialPortException ex) {
+                status_lbl.setText("Error: Can't connect to port "+port);
+            }
+        }
+    }//GEN-LAST:event_conect_arduino_btnActionPerformed
 
     /**
      * 
@@ -624,7 +634,6 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -638,6 +647,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JTextField port_form;
     private javax.swing.JButton reset_btn;
     private javax.swing.JButton start_pause_btn;
+    private javax.swing.JLabel status_lbl;
     private javax.swing.JLabel temp_lbl;
     private javax.swing.JLabel temp_lbl2;
     // End of variables declaration//GEN-END:variables
