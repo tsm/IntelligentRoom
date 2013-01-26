@@ -31,8 +31,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     int lamp0=0;
     int lamp1=0;
     
-    SimulationTime sunrise=new SimulationTime(6,0);
-    SimulationTime sunset=new SimulationTime(16,0);
+    SimulationTime sunrise=new SimulationTime(4,30);
+    SimulationTime sunset=new SimulationTime(18,0);
     
     URLConnectionReader ucr;
     
@@ -48,7 +48,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         
         //Write to arduino
         try {
-            serialPort.writeString(getLamp0()+","+getLamp1()+"\n");
+            if (!cb_COM.getSelectedItem().toString().equals("FAKE")){
+                serialPort.writeString(getLamp0()+","+getLamp1()+"\n");
+            }
         } catch (SerialPortException ex) {
             Logger.getLogger(IntelligentRoomClient.class.getName()).log(Level.SEVERE, null, ex);
         }

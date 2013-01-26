@@ -14,8 +14,8 @@ import java.util.logging.Logger;
 public class FakeArduino implements Runnable{
 
     IntelligentRoomClient client;
-    double lightMin = 100;
-    double lightMax = 500;
+    double minLight = 0;
+    double sunMuliplier = 1.2;
     
     FakeArduino(IntelligentRoomClient client) {
         this.client = client;
@@ -30,21 +30,8 @@ public class FakeArduino implements Runnable{
                 Logger.getLogger(FakeArduino.class.getName()).log(Level.SEVERE, null, ex);
             }
             if (client.isRunning){
-                double actual = client.time.getTime() % SimulationTime.DAY_SECS;
-                double sunRise = client.sunrise.getTime();
-                double sunSet = client.sunset.getTime();
-                double dayCenter = (sunSet+sunRise)/2;
-                double halfDay = dayCenter-sunRise;
-                double light;
-                System.out.println("Actual: "+actual+", sunRise: "+sunRise+", dayCenter: "+dayCenter+", sunSet: "+sunSet);
-                if ( Math.abs(dayCenter - actual)>=Math.abs(halfDay)){
-                    // Isn't between sunrise and sunset
-                    light = 100;
-                }else{
-                    //Is between then use proportion to linearize light value
-                    light = lightMin + (halfDay - Math.abs(dayCenter-actual))*(lightMax-lightMin)/halfDay;
-                }
-                client.stepSimulation((int)light, 26.0);
+                int light = (int) (minLight + client.getLamp0()*sunMuliplier+client.getLamp1());
+                client.stepSimulation(light, 26.0);
             }
         }
     }
