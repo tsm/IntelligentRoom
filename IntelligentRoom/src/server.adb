@@ -11,6 +11,10 @@ with AWS.Parameters;
 with AWS.Messages;
 with AWS.MIME;
 
+-----------------------------------------------
+-- Authors: Czarnik Tomasz, Smilek Krzysztof --
+-----------------------------------------------
+
 procedure Server is
 
    ----------------------------- DEFINICJA TYPOW  -----------------------------

@@ -508,6 +508,13 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Status: OK"/>
       </Properties>
+<<<<<<< HEAD
+=======
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="reset_btnMouseClicked"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="reset_btnActionPerformed"/>
+      </Events>
+>>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
     </Component>
   </SubComponents>
 </Form>

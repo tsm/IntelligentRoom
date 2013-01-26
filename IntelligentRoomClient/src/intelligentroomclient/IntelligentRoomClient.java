@@ -105,19 +105,19 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                                 setPhoto(Integer.valueOf(measures[0]));
                                 setTemp(Double.valueOf(measures[1]));
                                 
-                                if(isRunning){                                
+                                if(isRunning && console!=null){                                
                                     
                                     //RAPORT:
                                     if(time.getHour()==0&&time.getMin()==0){
-                                        System.out.println("==== Day "+time.getDay()+" ====");
+                                        console.writeMsg("==== Day "+time.getDay()+" ====");
                                     }
                                     if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
-                                        System.out.println("==== Sun rised ====");
+                                        console.writeMsg("==== Sun rised ====");
                                     }
                                     if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
-                                        System.out.println("==== Sunset ====");
+                                        console.writeMsg("==== Sunset ====");
                                     }
-                                    System.out.println(String.format("%2d",time.getHour())+":"+
+                                    console.writeMsg(String.format("%2d",time.getHour())+":"+
                                             String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
                                 
                                     
@@ -435,6 +435,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             }
         });
 
+<<<<<<< HEAD
         conect_arduino_btn.setText("Connect Arduino");
 
         connect2server_btn.setText("Connect to server");
@@ -493,6 +494,19 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         );
 
         jLabel7.setText("Status: OK");
+=======
+        reset_btn.setText("Reset");
+        reset_btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                reset_btnMouseClicked(evt);
+            }
+        });
+        reset_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reset_btnActionPerformed(evt);
+            }
+        });
+>>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -558,9 +572,18 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         } else {
             isRunning=true;
             start_pause_btn.setText("Pause");
+<<<<<<< HEAD
             URLConnectionReader ucr= new URLConnectionReader();
             String resp=ucr.sendGetRequest("http://localhost:8181/", "");
             System.out.println(resp);
+=======
+            if (console == null){
+                this.getWidth();
+                console = new Console(this.getWidth());
+            }
+            console.setVisible(true);
+            console.writeMsg("Rozpoczynam pomiary:");
+>>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
         }
     }//GEN-LAST:event_start_pause_btnActionPerformed
 
@@ -569,9 +592,17 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         showTime();
     }//GEN-LAST:event_reset_btnMouseClicked
 
+<<<<<<< HEAD
     private void port_formActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_port_formActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_port_formActionPerformed
+=======
+    private void reset_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reset_btnActionPerformed
+        if (console!=null){
+            console.clearConsole();
+        }
+    }//GEN-LAST:event_reset_btnActionPerformed
+>>>>>>> 535d858368a5f748b87421e7096ca072c1ddddbc
 
     /**
      * @param args the command line arguments
@@ -611,6 +642,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         
         
     }
+    private Console console;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton SetLamp1;
     private javax.swing.JTextField address_from;
