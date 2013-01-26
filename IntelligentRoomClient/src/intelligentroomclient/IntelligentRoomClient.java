@@ -103,19 +103,19 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                                 setPhoto(Integer.valueOf(measures[0]));
                                 setTemp(Double.valueOf(measures[1]));
                                 
-                                if(isRunning){                                
+                                if(isRunning && console!=null){                                
                                     
                                     //RAPORT:
                                     if(time.getHour()==0&&time.getMin()==0){
-                                        System.out.println("==== Day "+time.getDay()+" ====");
+                                        console.writeMsg("==== Day "+time.getDay()+" ====");
                                     }
                                     if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
-                                        System.out.println("==== Sun rised ====");
+                                        console.writeMsg("==== Sun rised ====");
                                     }
                                     if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
-                                        System.out.println("==== Sunset ====");
+                                        console.writeMsg("==== Sunset ====");
                                     }
-                                    System.out.println(String.format("%2d",time.getHour())+":"+
+                                    console.writeMsg(String.format("%2d",time.getHour())+":"+
                                             String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
                                 
                                     
@@ -297,6 +297,11 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 reset_btnMouseClicked(evt);
             }
         });
+        reset_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                reset_btnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -405,6 +410,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         } else {
             isRunning=true;
             start_pause_btn.setText("Pause");
+            if (console == null){
+                this.getWidth();
+                console = new Console(this.getWidth());
+            }
+            console.setVisible(true);
+            console.writeMsg("Rozpoczynam pomiary:");
         }
     }//GEN-LAST:event_start_pause_btnActionPerformed
 
@@ -412,6 +423,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         time.setTime(0);
         showTime();
     }//GEN-LAST:event_reset_btnMouseClicked
+
+    private void reset_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reset_btnActionPerformed
+        if (console!=null){
+            console.clearConsole();
+        }
+    }//GEN-LAST:event_reset_btnActionPerformed
 
     /**
      * @param args the command line arguments
@@ -450,6 +467,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         
         
     }
+    private Console console;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton SetLamp1;
     private javax.swing.JLabel day_lbl;
