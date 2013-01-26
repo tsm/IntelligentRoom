@@ -42,7 +42,29 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         
         //get lamp value from serwer
         if(ucr!=null){
-            
+           ucr= new URLConnectionReader();
+           String params="setLight?client="+client_form.getText()+"&value="+getPhoto()+"&t_h="+time.getHour()+"&t_m="+time.getMin();
+           String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
+           if(resp.startsWith("Sterowanie oswietleniem jest nieaktywne")){
+              status_lbl.setText("Light control inactive");
+              setLamp1(0); //TODO: ze zmianą?
+           }
+           else{
+               if(resp.startsWith("Nie znaleziono klienta")){
+                   status_lbl.setText("Error: client "+client_form.getText()+" not found");
+               }else{
+                   try{
+                        resp=resp.substring(1);
+                        int newvalue=Integer.valueOf(resp);
+                        setLamp1(newvalue);
+                        status_lbl.setText("OK");
+                   }catch (Exception ex) {
+                        status_lbl.setText("Error: unexpected server response >"+resp+"<");
+                    }                  
+               }
+           }
+           
+          
         }
         
         //Write to arduino
@@ -593,6 +615,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
     private void lamp1_sliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lamp1_sliderStateChanged
         setLamp1(lamp1_slider.getValue());
+        lamp1_form.setText(lamp1_slider.getValue()+"");
         
     }//GEN-LAST:event_lamp1_sliderStateChanged
 
@@ -653,7 +676,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
     private void connect2server_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect2server_btnActionPerformed
         ucr= new URLConnectionReader();
-        String params="config?client="+client_form.getText()+"&a_from_h=8&a_from_m=29&a_to_h=10&a_to_m=40&def_value="+getOptimalIllumination();
+        String params="config?client="+client_form.getText()+"&a_from_h=16&a_from_m=29&a_to_h=23&a_to_m=40&def_value="+getOptimalIllumination();
         String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
         if(resp.startsWith("OK")){
             status_lbl.setText("Connected to server");
