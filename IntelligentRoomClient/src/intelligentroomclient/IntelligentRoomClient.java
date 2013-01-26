@@ -555,9 +555,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
     private void conect_arduino_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conect_arduino_btnActionPerformed
         String port= cb_COM.getSelectedItem().toString();
-        if(!port.equals("FAKE")){
-            serialPort = new SerialPort(cb_COM.getSelectedItem().toString());
-            try {
+        try {
+            if(!port.equals("FAKE")){
+                serialPort = new SerialPort(cb_COM.getSelectedItem().toString());
                 //Open port
                 serialPort.openPort();
                 //We expose the settings. You can also use this line - serialPort.setParams(9600, 8, 1, 0);
@@ -570,10 +570,12 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 serialPort.setEventsMask(mask);//Set mask
                 serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
                 status_lbl.setText("Connected to "+port);
+            }else{
+                status_lbl.setText("Connected to "+port);
             }
-            catch (SerialPortException ex) {
-                status_lbl.setText("Error: Can't connect to port "+port);
-            }
+        }
+        catch (SerialPortException ex) {
+            status_lbl.setText("Error: Can't connect to port "+port);
         }
     }//GEN-LAST:event_conect_arduino_btnActionPerformed
 
