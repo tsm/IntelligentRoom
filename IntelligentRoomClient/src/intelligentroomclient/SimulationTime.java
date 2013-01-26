@@ -57,6 +57,6 @@ public class SimulationTime {
     }
     
     public boolean timeEquals(SimulationTime st){        
-        return (st.getHour()==this.getHour())&&(st.getMin()==this.getMin());
+        return (st.getTime()==this.getTime());
     }
 }

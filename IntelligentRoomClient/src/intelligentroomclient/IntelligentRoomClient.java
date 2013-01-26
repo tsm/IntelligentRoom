@@ -26,10 +26,36 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     boolean isRunning=false;
     
     SimulationTime time; //in sec
+    
     int lamp1=0;
     
     SimulationTime sunrise=new SimulationTime(6,0);
     SimulationTime sunset=new SimulationTime(16,0);
+    
+    public void stepSimulation(int photo, double temp){
+        setPhoto(photo);
+        setTemp(temp);
+
+        if(isRunning && console!=null){                                
+
+            //RAPORT:
+            if(time.getHour()==0&&time.getMin()==0){
+                console.writeMsg("==== Day "+time.getDay()+" ====");
+            }
+            if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
+                console.writeMsg("==== Sun rised ====");
+            }
+            if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
+                console.writeMsg("==== Sunset ====");
+            }
+            console.writeMsg(String.format("%2d",time.getHour())+":"+
+                    String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
+
+
+            time.addSecs(15*60); // TIME incrementation
+            showTime();
+        }
+    }
     
     public int getPhoto() {
         return photo;
@@ -101,28 +127,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                             //System.out.print(catlines.substring(0, newline));
                             String [] measures = catlines.substring(0, newline-1).split(";");
                             if(measures.length==2&&(!measures[0].equals(""))&&(!measures[1].equals(""))){ //zapobiega wczytaniu niepełnych danych
-                                setPhoto(Integer.valueOf(measures[0]));
-                                setTemp(Double.valueOf(measures[1]));
-                                
-                                if(isRunning && console!=null){                                
-                                    
-                                    //RAPORT:
-                                    if(time.getHour()==0&&time.getMin()==0){
-                                        console.writeMsg("==== Day "+time.getDay()+" ====");
-                                    }
-                                    if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
-                                        console.writeMsg("==== Sun rised ====");
-                                    }
-                                    if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
-                                        console.writeMsg("==== Sunset ====");
-                                    }
-                                    console.writeMsg(String.format("%2d",time.getHour())+":"+
-                                            String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", lamp= "+lamp1+", temp= "+temp+" °C"); 
-                                
-                                    
-                                    time.addSecs(15*60); // TIME incrementation
-                                    showTime();
-                                }
+                                stepSimulation(Integer.valueOf(measures[0]), Double.valueOf(measures[1]));                              
                             }
                             catlines=catlines.substring(newline+1);
                             newline=catlines.indexOf("\n");
@@ -173,7 +178,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         photo_lbl1 = new javax.swing.JLabel();
         photo_lbl = new javax.swing.JLabel();
         temp_lbl2 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        optimal_illumination_btn = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         SetLamp1 = new javax.swing.JButton();
         lamp1_form = new javax.swing.JTextField();
@@ -196,7 +201,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         client_form = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         port_form = new javax.swing.JTextField();
-        conect_arduino_btn = new javax.swing.JButton();
+        connect_arduino_btn = new javax.swing.JButton();
         connect2server_btn = new javax.swing.JButton();
         status_lbl = new javax.swing.JLabel();
 
@@ -221,7 +226,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         temp_lbl2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         temp_lbl2.setText("Temperature:");
 
-        jButton3.setText("Set optimal illumination");
+        optimal_illumination_btn.setText("Set optimal illumination");
+        optimal_illumination_btn.setEnabled(false);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -240,7 +246,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(photo_lbl)
                         .addGap(66, 66, 66)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -250,7 +256,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(photo_lbl1)
                     .addComponent(photo_lbl)
-                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
+                    .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE))
                 .addGap(10, 10, 10)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(temp_lbl2)
@@ -321,12 +327,14 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         );
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Simulation control"));
+        jPanel3.setEnabled(false);
 
         hour_lbl.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         hour_lbl.setForeground(new java.awt.Color(0, 0, 102));
         hour_lbl.setText("--");
 
         start_pause_btn.setText("Start");
+        start_pause_btn.setEnabled(false);
         start_pause_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 start_pause_btnActionPerformed(evt);
@@ -394,6 +402,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Connection"));
 
         cb_COM.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM10", "COM11", "COM12", "FAKE" }));
+        cb_COM.setSelectedIndex(2);
 
         jLabel2.setText("Arduino COM port:");
 
@@ -409,14 +418,15 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         port_form.setText("8181");
 
-        conect_arduino_btn.setText("Connect Arduino");
-        conect_arduino_btn.addActionListener(new java.awt.event.ActionListener() {
+        connect_arduino_btn.setText("Connect Arduino");
+        connect_arduino_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                conect_arduino_btnActionPerformed(evt);
+                connect_arduino_btnActionPerformed(evt);
             }
         });
 
         connect2server_btn.setText("Connect to server");
+        connect2server_btn.setEnabled(false);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -448,7 +458,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addComponent(client_form, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(conect_arduino_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addComponent(connect_arduino_btn, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -460,7 +470,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                     .addComponent(cb_COM, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5)
                     .addComponent(client_form, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(conect_arduino_btn))
+                    .addComponent(connect_arduino_btn))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -553,7 +563,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_reset_btnActionPerformed
 
-    private void conect_arduino_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_conect_arduino_btnActionPerformed
+    private void connect_arduino_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect_arduino_btnActionPerformed
         String port= cb_COM.getSelectedItem().toString();
         try {
             if(!port.equals("FAKE")){
@@ -571,13 +581,17 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
                 status_lbl.setText("Connected to "+port);
             }else{
+                new Thread(new FakeArduino(this)).start();
                 status_lbl.setText("Connected to "+port);
             }
         }
         catch (SerialPortException ex) {
             status_lbl.setText("Error: Can't connect to port "+port);
         }
-    }//GEN-LAST:event_conect_arduino_btnActionPerformed
+        connect_arduino_btn.setEnabled(false);
+        connect2server_btn.setEnabled(true);
+        start_pause_btn.setEnabled(true);
+    }//GEN-LAST:event_connect_arduino_btnActionPerformed
 
     /**
      * 
@@ -624,12 +638,11 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JTextField address_from;
     private javax.swing.JComboBox cb_COM;
     private javax.swing.JTextField client_form;
-    private javax.swing.JButton conect_arduino_btn;
     private javax.swing.JButton connect2server_btn;
+    private javax.swing.JButton connect_arduino_btn;
     private javax.swing.JLabel day_lbl;
     private javax.swing.JLabel day_lbl_const;
     private javax.swing.JLabel hour_lbl;
-    private javax.swing.JButton jButton3;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -644,6 +657,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JTextField lamp1_form;
     private javax.swing.JSlider lamp1_slider;
     private javax.swing.JLabel min_lbl;
+    private javax.swing.JButton optimal_illumination_btn;
     private javax.swing.JLabel photo_lbl;
     private javax.swing.JLabel photo_lbl1;
     private javax.swing.JTextField port_form;

@@ -95,7 +95,7 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="photo_lbl" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" pref="66" max="-2" attributes="0"/>
-                          <Component id="jButton3" min="-2" pref="173" max="-2" attributes="0"/>
+                          <Component id="optimal_illumination_btn" min="-2" pref="173" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="32767" attributes="0"/>
@@ -109,7 +109,7 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="photo_lbl1" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="photo_lbl" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jButton3" alignment="3" pref="28" max="32767" attributes="0"/>
+                      <Component id="optimal_illumination_btn" alignment="3" pref="28" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -154,9 +154,10 @@
             <Property name="text" type="java.lang.String" value="Temperature:"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JButton" name="jButton3">
+        <Component class="javax.swing.JButton" name="optimal_illumination_btn">
           <Properties>
             <Property name="text" type="java.lang.String" value="Set optimal illumination"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -240,6 +241,7 @@
             <TitledBorder title="Simulation control"/>
           </Border>
         </Property>
+        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
 
       <Layout>
@@ -296,6 +298,7 @@
         <Component class="javax.swing.JButton" name="start_pause_btn">
           <Properties>
             <Property name="text" type="java.lang.String" value="Start"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="start_pause_btnActionPerformed"/>
@@ -399,7 +402,7 @@
                       <Group type="102" attributes="0">
                           <Component id="client_form" min="-2" pref="80" max="-2" attributes="0"/>
                           <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="conect_arduino_btn" max="32767" attributes="0"/>
+                          <Component id="connect_arduino_btn" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -415,7 +418,7 @@
                       <Component id="cb_COM" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel5" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="client_form" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="conect_arduino_btn" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="connect_arduino_btn" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -450,6 +453,7 @@
                 <StringItem index="12" value="FAKE"/>
               </StringArray>
             </Property>
+            <Property name="selectedIndex" type="int" value="2"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="jLabel2">
@@ -487,17 +491,18 @@
             <Property name="text" type="java.lang.String" value="8181"/>
           </Properties>
         </Component>
-        <Component class="javax.swing.JButton" name="conect_arduino_btn">
+        <Component class="javax.swing.JButton" name="connect_arduino_btn">
           <Properties>
             <Property name="text" type="java.lang.String" value="Connect Arduino"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="conect_arduino_btnActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="connect_arduino_btnActionPerformed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JButton" name="connect2server_btn">
           <Properties>
             <Property name="text" type="java.lang.String" value="Connect to server"/>
+            <Property name="enabled" type="boolean" value="false"/>
           </Properties>
         </Component>
       </SubComponents>
