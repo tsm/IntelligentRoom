@@ -34,6 +34,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     SimulationTime sunrise=new SimulationTime(6,0);
     SimulationTime sunset=new SimulationTime(16,0);
     
+    URLConnectionReader ucr;
+    
     public void stepSimulation(int photo, double temp){
         setPhoto(photo);
         setTemp(temp);
@@ -473,6 +475,11 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         connect2server_btn.setText("Connect to server");
         connect2server_btn.setEnabled(false);
+        connect2server_btn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                connect2server_btnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -633,14 +640,28 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             }
         }
         connect_arduino_btn.setEnabled(false);
-        connect2server_btn.setEnabled(true);
-        start_pause_btn.setEnabled(true);
+        connect2server_btn.setEnabled(true);        
         optimal_illumination_btn.setEnabled(true);
     }//GEN-LAST:event_connect_arduino_btnActionPerformed
 
     private void optimal_illumination_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optimal_illumination_btnActionPerformed
         setOptimalIllumination(getPhoto());
     }//GEN-LAST:event_optimal_illumination_btnActionPerformed
+
+    private void connect2server_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect2server_btnActionPerformed
+        ucr= new URLConnectionReader();
+        String params="config?client="+client_form.getText()+"&a_from_h=8&a_from_m=29&a_to_h=10&a_to_m=40&def_value="+getOptimalIllumination();
+        String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
+        if(resp.startsWith("OK")){
+            status_lbl.setText("Connected to server");
+            connect2server_btn.setEnabled(false);
+            start_pause_btn.setEnabled(true);
+        }
+        else {            
+            status_lbl.setText(resp);    
+        }
+            
+    }//GEN-LAST:event_connect2server_btnActionPerformed
 
     /**
      * 

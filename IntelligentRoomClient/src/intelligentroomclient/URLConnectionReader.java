@@ -16,10 +16,10 @@ import java.net.URLConnection;
  * @author tsm
  */
 public class URLConnectionReader {
-    public String sendGetRequest(String address, String params) {
+    public String sendGetRequest(String address, String port, String params) {
         String response="";
         try {
-            URL url = new URL(address+params);
+            URL url = new URL("http://"+address+":"+port+"/"+params);
             URLConnection con = url.openConnection();
             BufferedReader in = new BufferedReader(
                                     new InputStreamReader(
@@ -33,10 +33,10 @@ public class URLConnectionReader {
             
         } 
         catch (MalformedURLException ex) {
-                return "Error: incorrect server address";
+                return "Error: Can't connect to server - incorrect server address";
             }
         catch (IOException ex) {
-            return "Error: read or write error";
+            return "Error: Can't connect to server - IO error";
         }
         return response;
     }
