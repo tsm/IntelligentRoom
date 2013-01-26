@@ -99,7 +99,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         while(newline>-1){
                             //System.out.print(catlines.substring(0, newline));
                             String [] measures = catlines.substring(0, newline-1).split(";");
-                            if((!measures[0].equals(""))&&(!measures[1].equals(""))){ //zapobiega wczytaniu niepełnych danych
+                            if(measures.length==2&&(!measures[0].equals(""))&&(!measures[1].equals(""))){ //zapobiega wczytaniu niepełnych danych
                                 setPhoto(Integer.valueOf(measures[0]));
                                 setTemp(Double.valueOf(measures[1]));
                                 
@@ -165,25 +165,10 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                                  SerialPort.STOPBITS_1,
                                  SerialPort.PARITY_NONE);
             
-            //serialPort.writeString("100\n");
-            
             int mask = SerialPort.MASK_RXCHAR + SerialPort.MASK_CTS + SerialPort.MASK_DSR;//Prepare mask
             serialPort.setEventsMask(mask);//Set mask
             serialPort.addEventListener(new SerialPortReader());//Add SerialPortEventListener
             
-            //Read the data of 10 bytes. Be careful with the method readBytes(), if the number of bytes in the input buffer
-            //is less than you need, then the method will wait for the right amount. Better to use it in conjunction with the
-            //interface SerialPortEventListener.
-            //byte[] buffer = serialPort.readBytes(10);
-            
-            //System.out.println(buffer);
-            
-            //Writes data to port
-            //serialPort.writeBytes("255\n".getBytes());
-            
-            //while(true);
-            //Closing the port
-            //serialPort.closePort();
         }
         catch (SerialPortException ex) {
             System.out.println(ex);
@@ -340,7 +325,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(174, 174, 174)
                                 .addComponent(jLabel1)))
-                        .addContainerGap(12, Short.MAX_VALUE))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -405,6 +390,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         } else {
             isRunning=true;
             start_pause_btn.setText("Pause");
+            URLConnectionReader ucr= new URLConnectionReader();
+            String resp=ucr.sendGetRequest("http://localhost:8181/", "");
+            System.out.println(resp);
         }
     }//GEN-LAST:event_start_pause_btnActionPerformed
 
