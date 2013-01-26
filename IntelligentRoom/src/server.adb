@@ -68,7 +68,11 @@ procedure Server is
       Params : constant AWS.Parameters.List := AWS.Status.Parameters (Request);
    begin
       Put_Line (URI);
-      IF URI = "/config" then
+      IF URI = "/" then
+         begin
+            return AWS.Response.File (AWS.MIME.Text_HTML, "index.html");
+         end;
+      elsif URI = "/config" then
          declare
             client : constant String:= AWS.Parameters.Get (Params, "client");
             a_from_h : constant String := AWS.Parameters.Get (Params, "a_from_h");
