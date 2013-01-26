@@ -40,11 +40,10 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         setPhoto(photo);
         setTemp(temp);
         
-        //setting the SUN
-        int half_sun_time=(sunset.getTime()-sunrise.getTime())/2;
-        setLamp0(255-(Math.abs(time.getTime()%SimulationTime.DAY_SECS - sunrise.getTime() - half_sun_time)/(half_sun_time/255))); // MAGIC LINE xD
-        
-        
+        //get lamp value from serwer
+        if(ucr!=null){
+            
+        }
         
         //Write to arduino
         try {
@@ -72,6 +71,10 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             time.addSecs(15*60); // TIME incrementation
             showTime();
         }
+        
+        //setting the SUN
+        int half_sun_time=(sunset.getTime()-sunrise.getTime())/2;
+        setLamp0(255-(Math.abs(time.getTime()%SimulationTime.DAY_SECS - sunrise.getTime() - half_sun_time)/(half_sun_time/255))); // MAGIC LINE xD
     }
     
     public int getPhoto() {
