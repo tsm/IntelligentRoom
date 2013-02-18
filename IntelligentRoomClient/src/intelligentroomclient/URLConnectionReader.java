@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package intelligentroomclient;
 
 import java.io.BufferedReader;
@@ -12,8 +8,10 @@ import java.net.URL;
 import java.net.URLConnection;
 
 /**
- *
- * @author tsm
+ * Intelligent room: bright control by Aruino
+ * 
+ * @author tsm & Smilasek
+ * tomszom.com
  */
 public class URLConnectionReader {
     public String sendGetRequest(String address, String port, String params) {

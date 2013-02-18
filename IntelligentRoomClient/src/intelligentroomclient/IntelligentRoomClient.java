@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package intelligentroomclient;
 
 import java.text.ParseException;
@@ -18,8 +14,10 @@ import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
 /**
- *
- * @author tsm
+ * Intelligent room: bright control by Aruino
+ * 
+ * @author tsm & Smilasek
+ * tomszom.com
  */
 public class IntelligentRoomClient extends javax.swing.JFrame {
     
@@ -54,12 +52,17 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
            String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
            if(resp.startsWith("Sterowanie oswietleniem jest nieaktywne")){
               status_lbl.setText("Light control inactive");
-              setLamp1(0); //TODO: ze zmianą?
+              if(!lamp1_slider.isEnabled()) setLamp1(0); //moment wyłączenia trybu "AUTO"
+              lamp1_slider.setEnabled(true);
+              lamp1_form.setEnabled(true);
+              
            }
            else{
                if(resp.startsWith("Nie znaleziono klienta")){
                    status_lbl.setText("Error: client "+client_form.getText()+" not found");
                }else{
+                   lamp1_slider.setEnabled(false);
+                   lamp1_form.setEnabled(false);
                    try{
                         resp=resp.substring(1);
                         int newvalue=Integer.valueOf(resp);
@@ -86,20 +89,26 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         if(isRunning && console!=null){                                
 
             //RAPORT:
-            if(time.getHour()==0&&time.getMin()==0){
+            int daytime= new SimulationTime(time.getHour(), time.getMin()).getTime();
+            int stepTime=((Integer) simulationStepSpinner.getValue())*SimulationTime.MIN_SECS;
+            //if(time.getHour()==0&&time.getMin()==0){
+            if(daytime>=0 && daytime<stepTime){
                 console.writeMsg("==== Day "+time.getDay()+" ====");
             }
-            if(time.getHour()==sunrise.getHour()&&time.getMin()==sunrise.getMin()){
+            
+            //if(time.getHour()>=sunrise.getHour()&&time.getMin()==sunrise.getMin()){
+            if(sunrise.getTime()>daytime-stepTime && sunrise.getTime()<=daytime){
                 console.writeMsg("==== Sun rised ====");
             }
-            if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
+            //if(time.getHour()==sunset.getHour()&&time.getMin()==sunset.getMin()){
+            if(sunset.getTime()>daytime-stepTime && sunset.getTime()<=daytime){
                 console.writeMsg("==== Sunset ====");
             }
             console.writeMsg(String.format("%2d",time.getHour())+":"+
                     String.format("%02d",time.getMin())+" :: Photoresistor = "+photo+", sun= "+getLamp0()+", lamp= "+getLamp1()+", temp= "+getTemp()+" °C"); 
 
 
-            time.addSecs(15*60); // TIME incrementation
+            time.addSecs(stepTime); // TIME incrementation
             showTime();
         }
         
@@ -206,6 +215,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         //System.out.println(buffer[0] + "  " + buffer[1] + "  " + buffer[2] + "  " + buffer[3]);
                     } catch (SerialPortException ex) {
                         status_lbl.setText("Error: problem with serial port");
+                    } catch (Exception ex){
+                        status_lbl.setText("Error: problem with reading from serial port");
                     }
                 }
             } else if (event.isCTS()) {//If CTS line has changed state
@@ -295,6 +306,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         toTimeSpinner = new javax.swing.JSpinner();
         fromTimeSpinner = new javax.swing.JSpinner();
         jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        simulationStepSpinner = new javax.swing.JSpinner();
         jPanel4 = new javax.swing.JPanel();
         cb_COM = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
@@ -351,16 +364,17 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         .addGap(2, 2, 2)
                         .addComponent(temp_lbl2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(temp_lbl))
+                        .addComponent(temp_lbl)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(photo_lbl1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(photo_lbl)
-                        .addGap(66, 66, 66)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(optimal_illumination_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(optimal_illumination_lbl)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -382,19 +396,9 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
         set_lamp1_btn.setText("SetLamp");
         set_lamp1_btn.setActionCommand("Set Lamp");
-        set_lamp1_btn.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                set_lamp1_btnMousePressed(evt);
-            }
-        });
         set_lamp1_btn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 set_lamp1_btnActionPerformed(evt);
-            }
-        });
-        set_lamp1_btn.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                set_lamp1_btnKeyPressed(evt);
             }
         });
 
@@ -527,52 +531,65 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         jLabel12.setFocusable(false);
         jLabel12.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
 
+        jLabel13.setText("Simulation time step in minutes:");
+
+        simulationStepSpinner.setModel(new javax.swing.SpinnerNumberModel(15, 1, 60, 5));
+        simulationStepSpinner.setEditor(new javax.swing.JSpinner.NumberEditor(simulationStepSpinner, ""));
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addComponent(start_pause_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(reset_btn)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(day_lbl_const, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(day_lbl, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(58, 58, 58)
-                .addComponent(hour_lbl)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(min_lbl)
-                .addGap(51, 51, 51))
-            .addGroup(jPanel3Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(sunriseSpinner)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(sunsetSpinner)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(start_pause_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(8, 8, 8)
+                        .addComponent(reset_btn))
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(sunriseSpinner)
+                                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE))
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(sunsetSpinner)
+                                .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                            .addComponent(jLabel13)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                            .addComponent(simulationStepSpinner, javax.swing.GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(fromTimeSpinner)
-                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(toTimeSpinner)
-                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(day_lbl_const, javax.swing.GroupLayout.PREFERRED_SIZE, 35, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(day_lbl, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(58, 58, 58)
+                        .addComponent(hour_lbl)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel3)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(min_lbl))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(fromTimeSpinner)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(toTimeSpinner)
+                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
+                .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -580,7 +597,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                                 .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(sunriseSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(jPanel3Layout.createSequentialGroup()
                             .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -596,13 +613,22 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                             .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                             .addComponent(toTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 20, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel13)
+                            .addComponent(simulationStepSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(18, 18, 18))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(hour_lbl)
+                            .addComponent(jLabel3)
+                            .addComponent(min_lbl)
+                            .addComponent(day_lbl)
+                            .addComponent(day_lbl_const))
+                        .addGap(2, 2, 2)))
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(hour_lbl)
-                    .addComponent(jLabel3)
-                    .addComponent(min_lbl)
-                    .addComponent(day_lbl)
-                    .addComponent(day_lbl_const)
                     .addComponent(start_pause_btn)
                     .addComponent(reset_btn))
                 .addContainerGap())
@@ -718,13 +744,13 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(21, 21, 21)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
                 .addComponent(status_lbl)
                 .addContainerGap())
         );
@@ -733,25 +759,17 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void set_lamp1_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_set_lamp1_btnActionPerformed
-        // TODO add your handling code here:
+        setLamp1(Integer.valueOf(lamp1_form.getText()));
     }//GEN-LAST:event_set_lamp1_btnActionPerformed
 
     private void lamp1_formActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lamp1_formActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_lamp1_formActionPerformed
 
-    private void set_lamp1_btnKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_set_lamp1_btnKeyPressed
-        
-    }//GEN-LAST:event_set_lamp1_btnKeyPressed
-
-    private void set_lamp1_btnMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_set_lamp1_btnMousePressed
-        setLamp1(Byte.valueOf(lamp1_form.getText()));
-        
-    }//GEN-LAST:event_set_lamp1_btnMousePressed
-
     private void lamp1_sliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_lamp1_sliderStateChanged
         setLamp1(lamp1_slider.getValue());
         lamp1_form.setText(lamp1_slider.getValue()+"");
+        setLamp1(Integer.valueOf(lamp1_form.getText()));
         
     }//GEN-LAST:event_lamp1_sliderStateChanged
 
@@ -910,6 +928,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -933,6 +952,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JTextField port_form;
     private javax.swing.JButton reset_btn;
     private javax.swing.JButton set_lamp1_btn;
+    private javax.swing.JSpinner simulationStepSpinner;
     private javax.swing.JButton start_pause_btn;
     private javax.swing.JLabel status_lbl;
     private javax.swing.JSpinner sunriseSpinner;

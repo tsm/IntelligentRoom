@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package intelligentroomclient;
 
 import java.io.BufferedWriter;
@@ -11,8 +7,10 @@ import java.io.IOException;
 import javax.swing.JFileChooser;
 
 /**
- *
- * @author Krzychu
+ * Intelligent room: bright control by Aruino
+ * 
+ * @author tsm & Smilasek
+ * tomszom.com
  */
 public class Console extends javax.swing.JFrame {
 
