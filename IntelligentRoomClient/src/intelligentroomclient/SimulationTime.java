@@ -36,7 +36,12 @@ public class SimulationTime {
     }
     
     public int getMin(){
-        return time/MIN_SECS%60;
+        int min = time/MIN_SECS%60;
+        if (min<0){
+            return min+60;
+        } else {
+            return min;
+        }
     }
     
     public int getHour(){

@@ -4,9 +4,14 @@
  */
 package intelligentroomclient;
 
-import java.awt.event.ActionEvent;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerDateModel;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
@@ -33,6 +38,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     
     SimulationTime sunrise=new SimulationTime(4,30);
     SimulationTime sunset=new SimulationTime(18,0);
+    SimulationTime fromTime=new SimulationTime(15,0);
+    SimulationTime toTime=new SimulationTime(22,0);
     
     URLConnectionReader ucr;
     
@@ -198,7 +205,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                         //byte buffer[] = serialPort.readBytes(4);
                         //System.out.println(buffer[0] + "  " + buffer[1] + "  " + buffer[2] + "  " + buffer[3]);
                     } catch (SerialPortException ex) {
-                        System.out.println(ex);
+                        status_lbl.setText("Error: problem with serial port");
                     }
                 }
             } else if (event.isCTS()) {//If CTS line has changed state
@@ -217,12 +224,35 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         }
     }
     
+    private void setSpinner(SimulationTime time, JSpinner spinner){
+        SpinnerDateModel model = new SpinnerDateModel();
+        model.setCalendarField(Calendar.MINUTE);        
+        Date def= new Date();
+        SimpleDateFormat formatterDefault = new SimpleDateFormat("H:mm"); 
+        
+        //sunrise time
+        try {  
+            def = formatterDefault.parse(time.getHour()+":"+time.getMin());  
+        } catch (ParseException ex) {
+            status_lbl.setText("Time parse problem");
+        }  
+        spinner.setModel(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "H:mm"));
+        spinner.setValue(def);
+    }
+    
     /**
      * Creates new form IntelligentRoomClient
      */
     public IntelligentRoomClient() {
         time=new SimulationTime(0);
         initComponents();
+        
+        //Set up time spinners:   
+        setSpinner(sunrise, sunriseSpinner);
+        setSpinner(sunset, sunsetSpinner);
+        setSpinner(fromTime, fromTimeSpinner);
+        setSpinner(toTime, toTimeSpinner);
     }
 
     /**
@@ -255,6 +285,16 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         day_lbl_const = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         min_lbl = new javax.swing.JLabel();
+        sunriseSpinner = new javax.swing.JSpinner();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        sunsetSpinner = new javax.swing.JSpinner();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        toTimeSpinner = new javax.swing.JSpinner();
+        fromTimeSpinner = new javax.swing.JSpinner();
+        jLabel12 = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         cb_COM = new javax.swing.JComboBox();
         jLabel2 = new javax.swing.JLabel();
@@ -439,11 +479,59 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         min_lbl.setForeground(new java.awt.Color(0, 0, 102));
         min_lbl.setText("--");
 
+        sunriseSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sunriseSpinnerStateChanged(evt);
+            }
+        });
+
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel7.setText("Sunrise");
+        jLabel7.setFocusable(false);
+        jLabel7.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
+        jLabel8.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/sun.png"))); // NOI18N
+
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Sunset");
+        jLabel9.setFocusable(false);
+        jLabel9.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
+        sunsetSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sunsetSpinnerStateChanged(evt);
+            }
+        });
+
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel10.setText("Time OFF");
+        jLabel10.setFocusable(false);
+        jLabel10.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
+        jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/img/shutdown.png"))); // NOI18N
+
+        toTimeSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                toTimeSpinnerStateChanged(evt);
+            }
+        });
+
+        fromTimeSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                fromTimeSpinnerStateChanged(evt);
+            }
+        });
+
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel12.setText("Time ON");
+        jLabel12.setFocusable(false);
+        jLabel12.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
+            .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(start_pause_btn, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(reset_btn)
@@ -458,11 +546,57 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(min_lbl)
                 .addGap(51, 51, 51))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(sunriseSpinner)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 87, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(sunsetSpinner)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(fromTimeSpinner)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 34, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(toTimeSpinner)
+                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 87, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(76, Short.MAX_VALUE)
+                .addContainerGap(24, Short.MAX_VALUE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(sunriseSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                            .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(sunsetSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(fromTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel3Layout.createSequentialGroup()
+                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(toTimeSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(hour_lbl)
                     .addComponent(jLabel3)
@@ -624,9 +758,13 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private void start_pause_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_start_pause_btnActionPerformed
         if(isRunning){
             isRunning=false;
+            //sunriseSpinner.setEnabled(true);
+            //sunsetSpinner.setEnabled(true);
             start_pause_btn.setText("Resume");
         } else {
             isRunning=true;
+            sunriseSpinner.setEnabled(false);
+            sunsetSpinner.setEnabled(false);
             start_pause_btn.setText("Pause");
             if (console == null){
                 this.getWidth();
@@ -639,6 +777,8 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private void reset_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reset_btnActionPerformed
         time.setTime(0);
         showTime();
+        sunriseSpinner.setEnabled(true);
+        sunsetSpinner.setEnabled(true);
         if (console!=null){
             console.clearConsole();
         }
@@ -680,18 +820,40 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
 
     private void connect2server_btnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connect2server_btnActionPerformed
         ucr= new URLConnectionReader();
-        String params="config?client="+client_form.getText()+"&a_from_h=16&a_from_m=29&a_to_h=23&a_to_m=40&def_value="+getOptimalIllumination();
+        String params="config?client="+client_form.getText()+"&a_from_h="+fromTime.getHour()+"&a_from_m="+fromTime.getMin()
+                +"&a_to_h="+toTime.getHour()+"&a_to_m="+toTime.getMin()+"&def_value="+getOptimalIllumination();
         String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
         if(resp.startsWith("OK")){
             status_lbl.setText("Connected to server");
             connect2server_btn.setEnabled(false);
             start_pause_btn.setEnabled(true);
+            fromTimeSpinner.setEnabled(false);
+            toTimeSpinner.setEnabled(false);
         }
         else {            
             status_lbl.setText(resp);    
         }
             
     }//GEN-LAST:event_connect2server_btnActionPerformed
+
+    private void sunriseSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sunriseSpinnerStateChanged
+        sunrise.setTime((int)(((Date)sunriseSpinner.getValue()).getTime()+3600000)/1000); //TODO: spinner trochę dziwnie działa, gdy cofa się o godzinę przed północ 23:30->0:30
+        //System.out.println(sunrise.getHour()+":"+sunrise.getMin());
+        //System.out.println(((Date)sunriseSpinner.getValue()).getTime()+3600000);
+        
+    }//GEN-LAST:event_sunriseSpinnerStateChanged
+
+    private void sunsetSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sunsetSpinnerStateChanged
+        sunset.setTime((int)(((Date)sunsetSpinner.getValue()).getTime()+3600000)/1000);
+    }//GEN-LAST:event_sunsetSpinnerStateChanged
+
+    private void toTimeSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_toTimeSpinnerStateChanged
+        toTime.setTime((int)(((Date)toTimeSpinner.getValue()).getTime()+3600000)/1000);
+    }//GEN-LAST:event_toTimeSpinnerStateChanged
+
+    private void fromTimeSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_fromTimeSpinnerStateChanged
+        fromTime.setTime((int)(((Date)fromTimeSpinner.getValue()).getTime()+3600000)/1000);
+    }//GEN-LAST:event_fromTimeSpinnerStateChanged
 
     /**
      * 
@@ -703,6 +865,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
          */
+        
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -741,13 +904,20 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JButton connect_arduino_btn;
     private javax.swing.JLabel day_lbl;
     private javax.swing.JLabel day_lbl_const;
+    private javax.swing.JSpinner fromTimeSpinner;
     private javax.swing.JLabel hour_lbl;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -765,7 +935,10 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     private javax.swing.JButton set_lamp1_btn;
     private javax.swing.JButton start_pause_btn;
     private javax.swing.JLabel status_lbl;
+    private javax.swing.JSpinner sunriseSpinner;
+    private javax.swing.JSpinner sunsetSpinner;
     private javax.swing.JLabel temp_lbl;
     private javax.swing.JLabel temp_lbl2;
+    private javax.swing.JSpinner toTimeSpinner;
     // End of variables declaration//GEN-END:variables
 }
