@@ -182,10 +182,13 @@ procedure Server is
                   t2 := float(config.brightness); -- wartosc docelowa
                   last := float(config.last_value); -- poprzednia wartosc nastawienia
 
-                  IF t1 >= (t2 + 20.0) THEN --margines bledu (20)
-                     temp := last - 5.0;
-                  ELSIF t1 <= (t2 - 20.0) THEN
-                     temp := last + 5.0;
+                  IF t1 >= (t2 + 25.0) THEN --margines bledu (-25 <-> +25)
+                     temp := last - 10.0;
+                     IF temp < 0.0 THEN
+                        temp := 0.0;
+                     END IF;
+                  ELSIF t1 <= (t2 - 25.0) THEN
+                     temp := last + 10.0;
                   ELSE
                      temp := last;
                   END IF;
@@ -197,6 +200,8 @@ procedure Server is
                   return AWS.Response.Build (AWS.MIME.Text_Plain, "Sterowanie oswietleniem jest nieaktywne!");
                END IF;
             else
+               config.last_value := 0;
+               clientsMap.replace(To_Unbounded_String(client),config);
                return AWS.Response.Build (AWS.MIME.Text_Plain, "Nie znaleziono klienta!");
             end if;
          end;
