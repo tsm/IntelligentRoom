@@ -402,6 +402,7 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
             }
         });
 
+        lamp1_form.setText("0");
         lamp1_form.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 lamp1_formActionPerformed(evt);
