@@ -140,6 +140,21 @@ procedure Server is
             end if;
 
          end;
+      elsif URI = "/setOptimal" then
+          declare
+            client : constant String := AWS.Parameters.Get (Params, "client");
+            value : constant String := AWS.Parameters.Get (Params, "value");
+            config : Client_Configuration;
+         begin
+            if clientsMap.contains(To_Unbounded_String(client)) then
+               config := clientsMap.Element(To_Unbounded_String(client));
+               config.brightness := Positive'Value(value);
+               clientsMap.replace(To_Unbounded_String(client),config);
+               return AWS.Response.Build (AWS.MIME.Text_Plain, "OK");
+            else
+               return AWS.Response.Build (AWS.MIME.Text_Plain, "Nie znaleziono klienta!");
+            end if;
+         end;
       elsif URI = "/setLight" then
          declare
             client : constant String := AWS.Parameters.Get (Params, "client");
@@ -189,6 +204,9 @@ procedure Server is
                      END IF;
                   ELSIF t1 <= (t2 - 25.0) THEN
                      temp := last + 10.0;
+                     IF temp > 255.0 THEN
+                        temp := 255.0;
+                     END IF;
                   ELSE
                      temp := last;
                   END IF;
@@ -197,11 +215,11 @@ procedure Server is
                   clientsMap.replace(To_Unbounded_String(client),config);
                   return AWS.Response.Build (AWS.MIME.Text_Plain, Integer'Image(result));
                ELSE
+               	  config.last_value := 0;
+                  clientsMap.replace(To_Unbounded_String(client),config);
                   return AWS.Response.Build (AWS.MIME.Text_Plain, "Sterowanie oswietleniem jest nieaktywne!");
                END IF;
             else
-               config.last_value := 0;
-               clientsMap.replace(To_Unbounded_String(client),config);
                return AWS.Response.Build (AWS.MIME.Text_Plain, "Nie znaleziono klienta!");
             end if;
          end;
