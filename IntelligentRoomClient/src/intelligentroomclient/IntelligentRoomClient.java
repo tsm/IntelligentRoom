@@ -175,8 +175,13 @@ public class IntelligentRoomClient extends javax.swing.JFrame {
     }
 
     public void setOptimalIllumination(int optimalIllumination) {
-        this.optimalIllumination = optimalIllumination;
-        optimal_illumination_lbl.setText(""+optimalIllumination);
+        ucr= new URLConnectionReader();
+        String params="setOptimal?client="+client_form.getText()+"&value="+optimalIllumination;
+        String resp = ucr.sendGetRequest(address_from.getText(), port_form.getText(),params);
+        if(resp.startsWith("OK")){  
+            this.optimalIllumination = optimalIllumination;
+            optimal_illumination_lbl.setText(""+optimalIllumination);
+        }
     }
     
     

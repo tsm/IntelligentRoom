@@ -140,6 +140,21 @@ procedure Server is
             end if;
 
          end;
+      elsif URI = "/setOptimal" then
+          declare
+            client : constant String := AWS.Parameters.Get (Params, "client");
+            value : constant String := AWS.Parameters.Get (Params, "value");
+            config : Client_Configuration;
+         begin
+            if clientsMap.contains(To_Unbounded_String(client)) then
+               config := clientsMap.Element(To_Unbounded_String(client));
+               config.brightness := Positive'Value(value);
+               clientsMap.replace(To_Unbounded_String(client),config);
+               return AWS.Response.Build (AWS.MIME.Text_Plain, "OK");
+            else
+               return AWS.Response.Build (AWS.MIME.Text_Plain, "Nie znaleziono klienta!");
+            end if;
+         end;
       elsif URI = "/setLight" then
          declare
             client : constant String := AWS.Parameters.Get (Params, "client");
@@ -182,10 +197,16 @@ procedure Server is
                   t2 := float(config.brightness); -- wartosc docelowa
                   last := float(config.last_value); -- poprzednia wartosc nastawienia
 
-                  IF t1 >= (t2 + 20.0) THEN --margines bledu (20)
-                     temp := last - 5.0;
-                  ELSIF t1 <= (t2 - 20.0) THEN
-                     temp := last + 5.0;
+                  IF t1 >= (t2 + 25.0) THEN --margines bledu (-25 <-> +25)
+                     temp := last - 10.0;
+                     IF temp < 0.0 THEN
+                        temp := 0.0;
+                     END IF;
+                  ELSIF t1 <= (t2 - 25.0) THEN
+                     temp := last + 10.0;
+                     IF temp > 255.0 THEN
+                        temp := 255.0;
+                     END IF;
                   ELSE
                      temp := last;
                   END IF;
@@ -194,6 +215,8 @@ procedure Server is
                   clientsMap.replace(To_Unbounded_String(client),config);
                   return AWS.Response.Build (AWS.MIME.Text_Plain, Integer'Image(result));
                ELSE
+               	  config.last_value := 0;
+                  clientsMap.replace(To_Unbounded_String(client),config);
                   return AWS.Response.Build (AWS.MIME.Text_Plain, "Sterowanie oswietleniem jest nieaktywne!");
                END IF;
             else
