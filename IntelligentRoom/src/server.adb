@@ -46,6 +46,7 @@ procedure Server is
       brightness	: Integer;		-- ustawienie jasnosci klienta
       active_now	: Boolean;		-- czy aktywny teraz
       force		: Boolean;		-- czy jest wymuszenie
+      last_value	: Integer;		-- poprzednia wartosc
    end record;
 
    -- Funkcja hashujaca mape
@@ -102,7 +103,7 @@ procedure Server is
                active_to := (a_t_h,a_t_m);
 
                -- dodawanie klientow do mapy
-               clientsMap.Insert(To_Unbounded_String(client),(To_Unbounded_String(client),active_from,active_to,def_val,False,False) );
+               clientsMap.Insert(To_Unbounded_String(client),(To_Unbounded_String(client),active_from,active_to,def_val,False,False,0) );
 
                return AWS.Response.Build (AWS.MIME.Text_Plain, "OK");
             end if;
@@ -148,7 +149,7 @@ procedure Server is
             config : Client_Configuration;
             now : Time;
             brightness, result : Integer;
-            temp,t1,t2 : Float;
+            temp,t1,t2,last : Float;
          begin
             if clientsMap.contains(To_Unbounded_String(client)) then
                --odczytanie parametrow
@@ -177,14 +178,20 @@ procedure Server is
 
                -- warunek sterowania oswietleniem
                IF config.active_now OR config.force THEN
-                  t1 := float(brightness);
-               	  t2 := float(config.brightness);
-                  IF t1 >= t2-50.0 THEN
-                     temp := 0.0;
+                  t1 := float(brightness); -- aktualna wartosc
+                  t2 := float(config.brightness); -- wartosc docelowa
+                  last := float(config.last_value); -- poprzednia wartosc nastawienia
+
+                  IF t1 >= (t2 + 20.0) THEN --margines bledu (20)
+                     temp := last - 5.0;
+                  ELSIF t1 <= (t2 - 20.0) THEN
+                     temp := last + 5.0;
                   ELSE
-                     temp := (1.0 - (t1 / t2)) * 100.0;
+                     temp := last;
                   END IF;
                   result := Integer(temp);
+                  config.last_value := result;
+                  clientsMap.replace(To_Unbounded_String(client),config);
                   return AWS.Response.Build (AWS.MIME.Text_Plain, Integer'Image(result));
                ELSE
                   return AWS.Response.Build (AWS.MIME.Text_Plain, "Sterowanie oswietleniem jest nieaktywne!");
